@@ -1,0 +1,102 @@
+:root {
+    /* Vibrant "Space Quest" Palette */
+    --color-bg-deep: #2B0B3A;
+    /* Deep purple background */
+    --color-bg-light: #481E5D;
+    /* Lighter purple for gradients */
+    --color-primary: #FF3366;
+    /* Pop Pink for main actions */
+    --color-secondary: #00E5FF;
+    /* Cyan for accents */
+    --color-success: #00FF94;
+    /* Green for correct answers */
+    --color-error: #FF9900;
+    /* Orange for try again */
+    --color-surface: rgba(255, 255, 255, 0.1);
+    /* Glass effect */
+    --color-surface-hover: rgba(255, 255, 255, 0.2);
+    --color-text: #FFFFFF;
+    --color-text-dim: #E0E0E0;
+
+    --font-main: 'Outfit', sans-serif;
+    --font-fun: 'Fredoka', cursive;
+
+    --radius-lg: 24px;
+    --radius-md: 16px;
+    --radius-sm: 8px;
+
+    --shadow-glow: 0 0 20px rgba(0, 229, 255, 0.3);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-main);
+    background: radial-gradient(circle at top right, var(--color-bg-light), var(--color-bg-deep));
+    color: var(--color-text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+button {
+    cursor: pointer;
+    border: none;
+    font-family: var(--font-fun);
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+button:active {
+    transform: scale(0.95);
+}
+
+h1,
+h2,
+h3 {
+    font-family: var(--font-fun);
+}
+
+.glass-panel {
+    background: var(--color-surface);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
+}
+
+.animate-pop {
+    animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes popIn {
+    0% {
+        transform: scale(0) rotate(-10deg);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+.floating {
+    animation: float 4s ease-in-out infinite;
+}
