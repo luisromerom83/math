@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { HelpCircle, CheckCircle2, XCircle, ChevronRight } from 'lucide-react';
+import AmericaMap from '../components/AmericaMap';
 
-const GeographyInputStage = ({ onComplete, country, capital, instruction }) => {
+const GeographyInputStage = ({ onComplete, country, code, capital, instruction }) => {
     const [input, setInput] = useState('');
     const [status, setStatus] = useState('idle'); // idle, success, error
     const [attempts, setAttempts] = useState(0);
@@ -40,6 +41,8 @@ const GeographyInputStage = ({ onComplete, country, capital, instruction }) => {
     return (
         <div style={{ textAlign: 'center', width: '100%', maxWidth: '500px' }}>
             <h2 style={{ color: 'var(--color-secondary)', marginBottom: '1rem' }}>{instruction}</h2>
+
+            <AmericaMap highlightCode={code} />
 
             <div className="glass-panel" style={{ padding: '2rem', marginBottom: '2rem' }}>
                 <div style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>{country}</div>

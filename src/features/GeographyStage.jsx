@@ -3,8 +3,9 @@ import { DndContext, useSensor, useSensors, MouseSensor, TouchSensor } from '@dn
 import { Draggable } from '../components/Draggable';
 import { Droppable } from '../components/Droppable';
 import { Globe } from 'lucide-react';
+import AmericaMap from '../components/AmericaMap';
 
-const GeographyStage = ({ onComplete, country, capital, options, instruction }) => {
+const GeographyStage = ({ onComplete, country, code, capital, options, instruction }) => {
     const [matched, setMatched] = useState(false);
     const [selectedOption, setSelectedOption] = useState(null);
 
@@ -29,6 +30,8 @@ const GeographyStage = ({ onComplete, country, capital, options, instruction }) 
         <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
             <div style={{ textAlign: 'center', width: '100%' }}>
                 <h2 style={{ marginBottom: '2rem', color: 'var(--color-secondary)' }}>{instruction}</h2>
+
+                <AmericaMap highlightCode={code} />
 
                 <div style={{
                     display: 'flex',

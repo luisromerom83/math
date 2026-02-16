@@ -413,6 +413,7 @@ function App() {
                                 key={currentLevel.id}
                                 onComplete={handleLevelComplete}
                                 country={currentLevel.country}
+                                code={currentLevel.code}
                                 capital={currentLevel.capital}
                                 options={currentLevel.options}
                                 instruction={currentLevel.instruction}
@@ -422,6 +423,7 @@ function App() {
                                 key={currentLevel.id}
                                 onComplete={handleLevelComplete}
                                 country={currentLevel.country}
+                                code={currentLevel.code}
                                 capital={currentLevel.capital}
                                 instruction={currentLevel.instruction}
                             />
