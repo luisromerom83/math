@@ -7,6 +7,8 @@ import EquivalenceStage from './features/EquivalenceStage';
 import OperationStage from './features/OperationStage';
 import CommonDenominatorStage from './features/CommonDenominatorStage';
 import AdvancedOperationStage from './features/AdvancedOperationStage';
+import GeographyStage from './features/GeographyStage';
+import GeographyQuizStage from './features/GeographyQuizStage';
 import ProgressBar from './components/ProgressBar';
 import LevelMenu from './components/LevelMenu';
 import DevMenu from './components/DevMenu';
@@ -17,12 +19,11 @@ function App() {
     // Load saved progress
     const savedMax = parseInt(localStorage.getItem('mathQuest_maxLevel') || '0', 10);
 
-    // If we have a saved max, start there? Or start at 0? 
-    // Usually start at max reached or 0. Let's start at max reached so they resume.
     const [levelIndex, setLevelIndex] = useState(savedMax);
     const [maxReached, setMaxReached] = useState(savedMax);
 
-    const [gameState, setGameState] = useState('menu'); // menu, playing, won
+    const [selectedSubject, setSelectedSubject] = useState(null); // 'math' or 'geography'
+    const [gameState, setGameState] = useState('subject-selection'); // subject-selection, menu, playing, won
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     // Developer Mode State
@@ -42,7 +43,7 @@ function App() {
         localStorage.removeItem('mathQuest_maxLevel');
         setMaxReached(0);
         setLevelIndex(0);
-        setGameState('menu');
+        setGameState('subject-selection');
         setShowDevMenu(false);
         window.location.reload(); // Force clean slate
     };
@@ -56,12 +57,10 @@ function App() {
     };
 
     const handleDevJump = (levelId) => {
-        // levelId corresponds to the visual ID (e.g. 101), we need the index
-        // Or if they input the index directly? Let's assume index for simplicity or find by ID
-        // Let's implement Find By ID for safety
         const idx = exercises.findIndex(e => e.id === levelId);
         if (idx !== -1) {
             setLevelIndex(idx);
+            setSelectedSubject(exercises[idx].subject);
             setGameState('playing');
             setShowDevMenu(false);
         } else {
@@ -69,38 +68,54 @@ function App() {
         }
     };
 
-    // Define Modules based on indexes
-    const modules = [
-        { id: 'math-basic', title: 'Fundamentos', startIndex: 0, count: 30, icon: '🍕', color: 'var(--color-primary)' },
-        { id: 'equivalence', title: 'Equivalencias', startIndex: exercises.findIndex(e => e.module === 'equivalence'), count: 30, icon: '⚖️', color: 'var(--color-secondary)' },
-        { id: 'sum-same', title: 'Sumas (Mismo Denom.)', startIndex: exercises.findIndex(e => e.module === 'sum-same'), count: 10, icon: '➕', color: 'var(--color-accent)' },
-        { id: 'common-denom', title: 'Denominador Común', startIndex: exercises.findIndex(e => e.module === 'common-denom'), count: 10, icon: '✂️', color: 'var(--color-warning)' },
-        { id: 'sum-diff', title: 'Sumas Avanzadas', startIndex: exercises.findIndex(e => e.module === 'sum-diff'), count: 10, icon: '🚀', color: 'var(--color-success)' },
-    ].map(m => {
+    // Define Modules based on subject
+    const getModuleInfo = (modId, title, icon, color) => {
+        const list = exercises.filter(e => e.module === modId);
+        return {
+            id: modId,
+            title,
+            startIndex: exercises.findIndex(e => e.module === modId),
+            count: list.length,
+            icon,
+            color
+        };
+    };
+
+    const mathModules = [
+        getModuleInfo('math-basic', 'Fundamentos', '🍕', 'var(--color-primary)'),
+        getModuleInfo('equivalence', 'Equivalencias', '⚖️', 'var(--color-secondary)'),
+        getModuleInfo('sum-same', 'Sumas Simples', '➕', 'var(--color-accent)'),
+        getModuleInfo('common-denom', 'Denom. Común', '✂️', 'var(--color-warning)'),
+        getModuleInfo('sum-diff', 'Sumas Avanzadas', '🚀', 'var(--color-success)'),
+    ].filter(m => m.startIndex !== -1);
+
+    const geographyModules = [
+        getModuleInfo('geography-capitals', 'Capitales (Arrastrar)', '🌎', 'var(--color-info)'),
+        getModuleInfo('geography-quiz', 'Trivia de Capitales', '❓', 'var(--color-accent)'),
+    ].filter(m => m.startIndex !== -1);
+
+    const availableModules = selectedSubject === 'math' ? mathModules : geographyModules;
+
+    const modules = availableModules.map(m => {
         const isStarted = levelIndex >= m.startIndex;
         const isPast = levelIndex >= m.startIndex + m.count;
 
-        // Progression Check
         let isLocked = false;
-
-        // 1. Hard lock (if explicitly set in config, e.g., features not ready)
         if (m.locked || m.startIndex === -1) {
             isLocked = true;
-        }
-        // 2. Progression lock (if haven't reached the start level)
-        else if (maxReached < m.startIndex) {
+        } else if (selectedSubject === 'math' && maxReached < m.startIndex) {
             isLocked = true;
+        } else if (selectedSubject === 'geography') {
+            // Unlocked by default for Geo for now
+            isLocked = false;
         }
 
-        // 3. Developer Override (Unlock All)
-        // If maxReached is huge (999 or total length), unlock everything visual
         if (maxReached >= exercises.length - 1) {
             isLocked = false;
         }
 
         return {
             ...m,
-            // If it's a stub (startIndex -1) and forced unlocked, it's still "active" but clicking needs safety
             locked: isLocked,
             active: isStarted && !isPast,
             completed: isPast,
@@ -111,19 +126,18 @@ function App() {
     const currentLevel = exercises[levelIndex];
 
     // Calculate Relative Progress
-    const currentModule = modules.find(m => m.active) || modules[0];
+    const currentModule = modules.find(m => m.active) || modules[0] || { startIndex: 0, count: 1, title: '...' };
     const relativeLevel = levelIndex - currentModule.startIndex + 1;
 
     const handleLevelComplete = () => {
         const nextLevel = levelIndex + 1;
-
-        // Save progress
         if (nextLevel > maxReached) {
             setMaxReached(nextLevel);
             localStorage.setItem('mathQuest_maxLevel', nextLevel.toString());
         }
 
-        if (levelIndex < exercises.length - 1) {
+        // Only continue if next level belongs to the same subject
+        if (levelIndex < exercises.length - 1 && exercises[nextLevel].subject === selectedSubject) {
             setLevelIndex(nextLevel);
         } else {
             setGameState('won');
@@ -131,22 +145,28 @@ function App() {
     };
 
     const handlePrevLevel = () => {
-        if (levelIndex > 0) {
+        if (levelIndex > 0 && exercises[levelIndex - 1].subject === selectedSubject) {
             setLevelIndex(prev => prev - 1);
             setGameState('playing');
         }
     };
 
     const handleNextLevel = () => {
-        if (levelIndex < maxReached && levelIndex < exercises.length - 1) {
+        if (levelIndex < maxReached && levelIndex < exercises.length - 1 && exercises[levelIndex + 1].subject === selectedSubject) {
             setLevelIndex(prev => prev + 1);
             setGameState('playing');
         }
     };
 
     const startGame = () => {
-        setLevelIndex(0);
         setGameState('playing');
+    };
+
+    const selectSubject = (subject) => {
+        setSelectedSubject(subject);
+        setGameState('menu');
+        const firstModule = subject === 'math' ? mathModules[0] : geographyModules[0];
+        setLevelIndex(firstModule.startIndex);
     };
 
     return (
@@ -184,15 +204,13 @@ function App() {
                 </div>
 
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-
-                    {/* Navigation Buttons */}
                     {gameState === 'playing' && (
                         <>
                             <button
                                 onClick={handlePrevLevel}
-                                disabled={levelIndex === 0}
+                                disabled={levelIndex === currentModule.startIndex}
                                 style={{
-                                    opacity: levelIndex === 0 ? 0.3 : 1,
+                                    opacity: levelIndex === currentModule.startIndex ? 0.3 : 1,
                                     background: 'none', border: 'none', color: 'white', cursor: 'pointer'
                                 }}>
                                 <BadgeChevronLeft />
@@ -204,17 +222,15 @@ function App() {
 
                             <button
                                 onClick={handleNextLevel}
-                                disabled={levelIndex >= maxReached}
+                                disabled={levelIndex >= maxReached || (levelIndex + 1 < exercises.length && exercises[levelIndex + 1].subject !== selectedSubject)}
                                 style={{
-                                    opacity: levelIndex >= maxReached ? 0.3 : 1,
+                                    opacity: (levelIndex >= maxReached || (levelIndex + 1 < exercises.length && exercises[levelIndex + 1].subject !== selectedSubject)) ? 0.3 : 1,
                                     background: 'none', border: 'none', color: 'white', cursor: 'pointer'
                                 }}>
                                 <BadgeChevronRight />
                             </button>
                         </>
                     )}
-
-                    {!gameState && <span style={{ fontSize: '1.2rem' }}>Menú</span>}
 
                     <div
                         onClick={handleDevClick}
@@ -252,7 +268,7 @@ function App() {
                         setLevelIndex(idx);
                         setGameState('playing');
                     } else {
-                        alert('🚧 Este módulo está en construcción. ¡Pronto disponible!');
+                        alert('🚧 Este módulo está en construcción!');
                     }
                 }}
             />
@@ -275,26 +291,60 @@ function App() {
                 alignItems: 'center',
                 justifyContent: 'center'
             }}>
-                {gameState === 'menu' ? (
+                {gameState === 'subject-selection' ? (
                     <div style={{ textAlign: 'center' }}>
-                        <h2 style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>¿Listo para la Aventura?</h2>
-                        <p style={{ fontSize: '1.2rem', color: 'var(--color-text-dim)', marginBottom: '2rem' }}>
-                            ¡Vamos a dominar las fracciones juntos!
-                        </p>
-                        <div style={{ marginBottom: '2rem' }}>
-                            <p>Total de ejercicios: {exercises.length}</p>
+                        <h2 style={{ fontSize: '2.5rem', marginBottom: '2rem' }}>¿Qué quieres aprender hoy?</h2>
+                        <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                            <button
+                                onClick={() => selectSubject('math')}
+                                className="glass-panel hover-scale"
+                                style={{
+                                    padding: '2rem', width: '220px', textAlign: 'center',
+                                    background: 'rgba(255, 51, 102, 0.1)', cursor: 'pointer', border: 'none'
+                                }}
+                            >
+                                <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🍕</div>
+                                <h3 style={{ fontSize: '1.5rem', color: 'var(--color-primary)' }}>Matemáticas</h3>
+                            </button>
+                            <button
+                                onClick={() => selectSubject('geography')}
+                                className="glass-panel hover-scale"
+                                style={{
+                                    padding: '2rem', width: '220px', textAlign: 'center',
+                                    background: 'rgba(0, 229, 255, 0.1)', cursor: 'pointer', border: 'none'
+                                }}
+                            >
+                                <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🌎</div>
+                                <h3 style={{ fontSize: '1.5rem', color: 'var(--color-secondary)' }}>Geografía</h3>
+                            </button>
                         </div>
+                    </div>
+                ) : gameState === 'menu' ? (
+                    <div style={{ textAlign: 'center' }}>
+                        <h2 style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>
+                            {selectedSubject === 'math' ? 'Aventura Matemática' : 'Exploración Geográfica'}
+                        </h2>
+                        <p style={{ fontSize: '1.2rem', color: 'var(--color-text-dim)', marginBottom: '2rem' }}>
+                            {selectedSubject === 'math'
+                                ? '¡Domina las fracciones y diviértete!'
+                                : '¡Conoce las capitales de todo el continente!'}
+                        </p>
                         <button
                             onClick={startGame}
                             style={{
-                                background: 'var(--color-primary)',
-                                color: 'white',
+                                background: selectedSubject === 'math' ? 'var(--color-primary)' : 'var(--color-secondary)',
+                                color: selectedSubject === 'math' ? 'white' : 'var(--color-bg-deep)',
                                 padding: '1rem 3rem',
                                 fontSize: '1.5rem',
                                 borderRadius: 'var(--radius-md)',
                                 boxShadow: '0 4px 15px rgba(255, 51, 102, 0.4)'
                             }}>
-                            Jugar Ahora
+                            ¡Comenzar!
+                        </button>
+                        <button
+                            onClick={() => setGameState('subject-selection')}
+                            style={{ display: 'block', margin: '2rem auto 0', background: 'none', color: 'var(--color-text-dim)', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+                            Volver a selección de materia
                         </button>
                     </div>
                 ) : gameState === 'playing' ? (
@@ -358,29 +408,55 @@ function App() {
                                 result={currentLevel.result}
                                 instruction={currentLevel.instruction}
                             />
+                        ) : currentLevel.type === 'geography' ? (
+                            <GeographyStage
+                                key={currentLevel.id}
+                                onComplete={handleLevelComplete}
+                                country={currentLevel.country}
+                                capital={currentLevel.capital}
+                                options={currentLevel.options}
+                                instruction={currentLevel.instruction}
+                            />
+                        ) : currentLevel.type === 'geography-quiz' ? (
+                            <GeographyQuizStage
+                                key={currentLevel.id}
+                                onComplete={handleLevelComplete}
+                                country={currentLevel.country}
+                                capital={currentLevel.capital}
+                                options={currentLevel.options}
+                                instruction={currentLevel.instruction}
+                            />
                         ) : null}
                     </div>
                 ) : (
                     <div style={{ textAlign: 'center' }} className="animate-pop">
-                        <h2 style={{ fontSize: '3rem', color: 'var(--color-success)', marginBottom: '1rem' }}>¡Ganaste!</h2>
-                        <p style={{ marginBottom: '2rem' }}>¡Completaste los {exercises.length} niveles!</p>
-                        <button onClick={startGame} style={{
-                            background: 'var(--color-secondary)',
-                            color: 'var(--color-bg-deep)',
-                            padding: '1rem 2rem',
-                            borderRadius: 'var(--radius-md)',
-                            fontSize: '1.2rem'
-                        }}>Jugar de Nuevo</button>
+                        <h2 style={{ fontSize: '3rem', color: 'var(--color-success)', marginBottom: '1rem' }}>¡Lo lograste!</h2>
+                        <p style={{ marginBottom: '2rem', fontSize: '1.2rem' }}>Has completado todos los niveles de {selectedSubject === 'math' ? 'Matemáticas' : 'Geografía'}.</p>
+                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                            <button onClick={() => setGameState('playing')} style={{
+                                background: 'var(--color-secondary)',
+                                color: 'var(--color-bg-deep)',
+                                padding: '1rem 2rem',
+                                borderRadius: 'var(--radius-md)',
+                                fontSize: '1.1rem'
+                            }}>Repetir niveles</button>
+                            <button onClick={() => setGameState('subject-selection')} style={{
+                                background: 'var(--color-primary)',
+                                color: 'white',
+                                padding: '1rem 2rem',
+                                borderRadius: 'var(--radius-md)',
+                                fontSize: '1.1rem'
+                            }}>Elegir otra materia</button>
+                        </div>
                     </div>
                 )}
 
-                {/* Updated Toast Style to avoid overlapping */}
                 <div id="instruction-toast" className="glass-panel hidden" style={{
                     position: 'fixed', bottom: '10px', right: '10px', left: 'auto', transform: 'none',
                     padding: '0.5rem 1rem', background: 'rgba(255, 51, 102, 0.9)', color: 'white',
                     zIndex: 2000, pointerEvents: 'none', borderRadius: '25px', fontSize: '0.9rem'
                 }}>
-                    👆 ¡Arrástrame!
+                    👆 ¡Interactúa!
                 </div>
             </main>
         </div>

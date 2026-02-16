@@ -12,6 +12,12 @@
     /* Green for correct answers */
     --color-error: #FF9900;
     /* Orange for try again */
+    --color-warning: #FFD700;
+    /* Gold for intermediate stages */
+    --color-accent: #9D50BB;
+    /* Purple for special modules */
+    --color-info: #4FACFE;
+    /* Blue for Geography */
     --color-surface: rgba(255, 255, 255, 0.1);
     /* Glass effect */
     --color-surface-hover: rgba(255, 255, 255, 0.2);
