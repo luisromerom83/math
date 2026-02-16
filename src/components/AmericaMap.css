@@ -32,29 +32,29 @@
 .map-container .highlighted-country,
 .map-container .highlighted-country path,
 .map-container .highlighted-country g {
-    fill: var(--color-accent) !important;
-    /* Gold/Accent */
+    fill: #00ff00 !important;
+    /* Shiny Green */
     stroke: #ffffff !important;
     stroke-width: 2px !important;
-    filter: drop-shadow(0 0 8px var(--color-accent));
+    filter: drop-shadow(0 0 12px #00ff00) brightness(1.2);
     z-index: 10;
+}
+
+.map-container svg {
+    transition: viewbox 0.8s ease-in-out, all 0.5s ease;
 }
 
 .map-container .highlighted-country {
     transform-origin: center;
-    animation: mapPulse 2s infinite;
+    animation: mapPulse 1.5s infinite alternate;
 }
 
 @keyframes mapPulse {
     0% {
-        filter: drop-shadow(0 0 5px var(--color-accent));
-    }
-
-    50% {
-        filter: drop-shadow(0 0 15px var(--color-accent));
+        filter: drop-shadow(0 0 5px #00ff00) brightness(1);
     }
 
     100% {
-        filter: drop-shadow(0 0 5px var(--color-accent));
+        filter: drop-shadow(0 0 20px #00ff00) brightness(1.5);
     }
 }
