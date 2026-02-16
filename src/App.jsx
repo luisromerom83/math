@@ -8,6 +8,7 @@ import OperationStage from './features/OperationStage';
 import CommonDenominatorStage from './features/CommonDenominatorStage';
 import AdvancedOperationStage from './features/AdvancedOperationStage';
 import GeographyStage from './features/GeographyStage';
+import GeographyInputStage from './features/GeographyInputStage';
 import ProgressBar from './components/ProgressBar';
 import LevelMenu from './components/LevelMenu';
 import DevMenu from './components/DevMenu';
@@ -90,6 +91,7 @@ function App() {
 
     const geographyModules = [
         getModuleInfo('geography-capitals', 'Capitales de América', '🌎', 'var(--color-info)'),
+        getModuleInfo('geography-input', 'Escribe las Capitales', '✍️', 'var(--color-accent)'),
     ].filter(m => m.startIndex !== -1);
 
     const availableModules = selectedSubject === 'math' ? mathModules : geographyModules;
@@ -413,6 +415,14 @@ function App() {
                                 country={currentLevel.country}
                                 capital={currentLevel.capital}
                                 options={currentLevel.options}
+                                instruction={currentLevel.instruction}
+                            />
+                        ) : currentLevel.type === 'geography-input' ? (
+                            <GeographyInputStage
+                                key={currentLevel.id}
+                                onComplete={handleLevelComplete}
+                                country={currentLevel.country}
+                                capital={currentLevel.capital}
                                 instruction={currentLevel.instruction}
                             />
                         ) : null}
