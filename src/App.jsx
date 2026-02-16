@@ -8,7 +8,6 @@ import OperationStage from './features/OperationStage';
 import CommonDenominatorStage from './features/CommonDenominatorStage';
 import AdvancedOperationStage from './features/AdvancedOperationStage';
 import GeographyStage from './features/GeographyStage';
-import GeographyQuizStage from './features/GeographyQuizStage';
 import ProgressBar from './components/ProgressBar';
 import LevelMenu from './components/LevelMenu';
 import DevMenu from './components/DevMenu';
@@ -90,8 +89,7 @@ function App() {
     ].filter(m => m.startIndex !== -1);
 
     const geographyModules = [
-        getModuleInfo('geography-capitals', 'Capitales (Arrastrar)', '🌎', 'var(--color-info)'),
-        getModuleInfo('geography-quiz', 'Trivia de Capitales', '❓', 'var(--color-accent)'),
+        getModuleInfo('geography-capitals', 'Capitales de América', '🌎', 'var(--color-info)'),
     ].filter(m => m.startIndex !== -1);
 
     const availableModules = selectedSubject === 'math' ? mathModules : geographyModules;
@@ -410,15 +408,6 @@ function App() {
                             />
                         ) : currentLevel.type === 'geography' ? (
                             <GeographyStage
-                                key={currentLevel.id}
-                                onComplete={handleLevelComplete}
-                                country={currentLevel.country}
-                                capital={currentLevel.capital}
-                                options={currentLevel.options}
-                                instruction={currentLevel.instruction}
-                            />
-                        ) : currentLevel.type === 'geography-quiz' ? (
-                            <GeographyQuizStage
                                 key={currentLevel.id}
                                 onComplete={handleLevelComplete}
                                 country={currentLevel.country}
