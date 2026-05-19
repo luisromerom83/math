@@ -4,12 +4,9 @@ const PythagoreanStage = ({ onComplete, tableSize = 10, missingCells = [], allMi
     // missingCells is an array of objects: { r: row, c: col }
     const [inputs, setInputs] = useState({});
     const [correctCells, setCorrectCells] = useState({});
+    const [focusedCell, setFocusedCell] = useState(null);
 
-    // Reset state when level changes
-    useEffect(() => {
-        setInputs({});
-        setCorrectCells({});
-    }, [tableSize, missingCells]);
+    // State is automatically reset when level changes because App.jsx uses key={currentLevel.id}
 
     const totalMissingCount = allMissing ? tableSize * tableSize : missingCells.length;
 
@@ -47,6 +44,11 @@ const PythagoreanStage = ({ onComplete, tableSize = 10, missingCells = [], allMi
                 const isHeaderCol = c === 0;
                 const isCorner = isHeaderRow && isHeaderCol;
                 
+                const isHighlighted = focusedCell && (
+                    (r === focusedCell.r && c <= focusedCell.c) || 
+                    (c === focusedCell.c && r <= focusedCell.r)
+                );
+                
                 let content = null;
                 let isMissing = false;
                 let cellStyle = {
@@ -71,14 +73,16 @@ const PythagoreanStage = ({ onComplete, tableSize = 10, missingCells = [], allMi
                     cellStyle.border = 'none';
                 } else if (isHeaderRow) {
                     content = c;
-                    cellStyle.backgroundColor = 'var(--color-secondary)';
+                    cellStyle.backgroundColor = isHighlighted ? 'var(--color-warning)' : 'var(--color-secondary)';
                     cellStyle.color = 'var(--color-bg-deep)';
                     cellStyle.border = 'none';
+                    if (isHighlighted) cellStyle.transform = 'scale(1.05)';
                 } else if (isHeaderCol) {
                     content = r;
-                    cellStyle.backgroundColor = 'var(--color-secondary)';
+                    cellStyle.backgroundColor = isHighlighted ? 'var(--color-warning)' : 'var(--color-secondary)';
                     cellStyle.color = 'var(--color-bg-deep)';
                     cellStyle.border = 'none';
+                    if (isHighlighted) cellStyle.transform = 'scale(1.05)';
                 } else {
                     const isMissingCell = allMissing || missingCells.find(cell => cell.r === r && cell.c === c);
                     const key = `${r}-${c}`;
@@ -91,6 +95,8 @@ const PythagoreanStage = ({ onComplete, tableSize = 10, missingCells = [], allMi
                                 type="number"
                                 value={inputs[key] || ''}
                                 onChange={(e) => handleInputChange(r, c, e.target.value)}
+                                onFocus={() => setFocusedCell({ r, c })}
+                                onBlur={() => setFocusedCell(null)}
                                 disabled={isCorrect}
                                 style={{
                                     width: '100%',
@@ -100,7 +106,7 @@ const PythagoreanStage = ({ onComplete, tableSize = 10, missingCells = [], allMi
                                     textAlign: 'center',
                                     fontWeight: 'bold',
                                     fontSize: tableSize > 5 ? '1.2rem' : '1.5rem',
-                                    backgroundColor: isCorrect ? 'var(--color-success)' : 'white',
+                                    backgroundColor: isCorrect ? 'var(--color-success)' : (isHighlighted ? 'rgba(255, 215, 0, 0.3)' : 'white'),
                                     color: isCorrect ? 'white' : '#000000',
                                     borderRadius: '4px',
                                     transition: 'all 0.3s ease',
@@ -109,12 +115,12 @@ const PythagoreanStage = ({ onComplete, tableSize = 10, missingCells = [], allMi
                             />
                         );
                         cellStyle.padding = '0';
-                        cellStyle.border = isCorrect ? '2px solid var(--color-success)' : '2px solid var(--color-primary)';
+                        cellStyle.border = isCorrect ? '2px solid var(--color-success)' : (isHighlighted ? '2px solid var(--color-warning)' : '2px solid var(--color-primary)');
                         if (isCorrect) cellStyle.transform = 'scale(1.05)';
                     } else {
                         content = r * c;
-                        cellStyle.color = 'var(--color-text-dim)';
-                        cellStyle.backgroundColor = 'rgba(255,255,255,0.5)';
+                        cellStyle.color = isHighlighted ? '#000' : 'var(--color-text-dim)';
+                        cellStyle.backgroundColor = isHighlighted ? 'rgba(255, 215, 0, 0.6)' : 'rgba(255,255,255,0.5)';
                     }
                 }
 
