@@ -9,6 +9,7 @@ import CommonDenominatorStage from './features/CommonDenominatorStage';
 import AdvancedOperationStage from './features/AdvancedOperationStage';
 import GeographyStage from './features/GeographyStage';
 import GeographyInputStage from './features/GeographyInputStage';
+import PythagoreanStage from './features/PythagoreanStage';
 import ProgressBar from './components/ProgressBar';
 import LevelMenu from './components/LevelMenu';
 import DevMenu from './components/DevMenu';
@@ -87,6 +88,7 @@ function App() {
         getModuleInfo('sum-same', 'Sumas Simples', '➕', 'var(--color-accent)'),
         getModuleInfo('common-denom', 'Denom. Común', '✂️', 'var(--color-warning)'),
         getModuleInfo('sum-diff', 'Sumas Avanzadas', '🚀', 'var(--color-success)'),
+        getModuleInfo('pythagorean', 'Tabla Pitagórica', '✖️', 'var(--color-primary)'),
     ].filter(m => m.startIndex !== -1);
 
     const geographyModules = [
@@ -103,7 +105,7 @@ function App() {
         let isLocked = false;
         if (m.locked || m.startIndex === -1) {
             isLocked = true;
-        } else if (selectedSubject === 'math' && maxReached < m.startIndex) {
+        } else if (selectedSubject === 'math' && maxReached < m.startIndex && m.id !== 'pythagorean') {
             isLocked = true;
         } else if (selectedSubject === 'geography') {
             // Unlocked by default for Geo for now
@@ -406,6 +408,15 @@ function App() {
                                 operand1={currentLevel.operand1}
                                 operand2={currentLevel.operand2}
                                 result={currentLevel.result}
+                                instruction={currentLevel.instruction}
+                            />
+                        ) : currentLevel.type === 'pythagorean' ? (
+                            <PythagoreanStage
+                                key={currentLevel.id}
+                                onComplete={handleLevelComplete}
+                                tableSize={currentLevel.tableSize}
+                                missingCells={currentLevel.missingCells}
+                                allMissing={currentLevel.allMissing}
                                 instruction={currentLevel.instruction}
                             />
                         ) : currentLevel.type === 'geography' ? (

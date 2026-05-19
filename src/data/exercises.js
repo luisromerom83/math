@@ -46,6 +46,9 @@ export const exercises = [
 
     { id: 401, subject: 'math', module: 'sum-diff', type: 'advanced-operation', operand1: '1/2', operand2: '1/4', result: '3/4', instruction: 'Suma: 1/2 + 1/4' },
 
+    // MODULE: PYTHAGOREAN TABLE
+    { id: 501, subject: 'math', module: 'pythagorean', type: 'pythagorean', tableSize: 10, allMissing: true, instruction: '¡Completa la tabla pitagórica!' },
+
     // GEOGRAPHY SUBJECT
     // MODULE: GEOGRAPHY - CAPITALS (Drag & Drop)
     { id: 1001, subject: 'geography', module: 'geography-capitals', type: 'geography', country: 'Canadá', code: 'ca', capital: 'Ottawa', options: ['Toronto', 'Montreal', 'Vancouver', 'Ottawa'], instruction: 'Mueve la capital correcta:' },
