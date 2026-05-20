@@ -103,4 +103,26 @@ export const exercises = [
     { id: 2023, subject: 'geography', module: 'geography-input', type: 'geography-input', country: 'Paraguay', code: 'py', capital: 'Asunción', instruction: '¿Cuál es la capital?' },
     { id: 2024, subject: 'geography', module: 'geography-input', type: 'geography-input', country: 'Guyana', code: 'gy', capital: 'Georgetown', instruction: '¿Cuál es la capital?' },
     { id: 2025, subject: 'geography', module: 'geography-input', type: 'geography-input', country: 'Surinam', code: 'sr', capital: 'Paramaribo', instruction: '¿Cuál es la capital?' },
+
+    // ENGLISH SUBJECT
+    // MODULE: SPELLING BEE
+    ...[
+        "School", "Number", "Car", "Watermelon", "Apple", "Yellow", "Train", "Restaurant", "Island", "Elephant", 
+        "Travel", "Read", "Treasure", "Friend", "Describe", "Shopping", "Library", "Walk", "Play", "Orange", 
+        "Four", "Volcano", "Welcome", "Write", "Story", "Spring", "Plant", "North", "January", "Plane", 
+        "Summer", "Jeans", "July", "November", "Winter", "Food", "Potato", "Garden", "Under", "Lime", 
+        "Flower", "Picture", "Seed", "Sentence", "Vegetable", "Onion", "Flippers", "Swim", "Hunter", "Square", 
+        "Count", "Game", "House", "Shell", "Animals", "Giraffe", "West", "Country", "Skin", "False", 
+        "Information", "River", "Wings", "Draw", "Listen", "Shake", "Head", "Arm", "Eating", "Hospital", 
+        "Working", "Yellow", "Coat", "Stepsister", "Theater", "Character", "Queen", "Shoes", "Kitchen", "Shower", 
+        "Bathroom", "Activity", "Street", "Store", "Strawberry", "Avocado", "Green", "Doll", "Dollar", "Horse", 
+        "Rabbit", "Long", "Brown", "Answer", "Basket", "Choose", "Cookies", "Chicken", "Time"
+    ].map((word, index) => ({
+        id: 3001 + index,
+        subject: 'english',
+        module: 'spelling-bee',
+        type: 'spelling',
+        word: word,
+        instruction: 'Escucha y escribe la palabra:'
+    }))
 ];

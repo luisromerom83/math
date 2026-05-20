@@ -10,6 +10,7 @@ import AdvancedOperationStage from './features/AdvancedOperationStage';
 import GeographyStage from './features/GeographyStage';
 import GeographyInputStage from './features/GeographyInputStage';
 import PythagoreanStage from './features/PythagoreanStage';
+import SpellingBeeStage from './features/SpellingBeeStage';
 import ProgressBar from './components/ProgressBar';
 import LevelMenu from './components/LevelMenu';
 import DevMenu from './components/DevMenu';
@@ -22,6 +23,7 @@ function App() {
 
     const [levelIndex, setLevelIndex] = useState(savedMax);
     const [maxReached, setMaxReached] = useState(savedMax);
+    const [skippedLevels, setSkippedLevels] = useState([]);
 
     const [selectedSubject, setSelectedSubject] = useState(null); // 'math' or 'geography'
     const [gameState, setGameState] = useState('subject-selection'); // subject-selection, menu, playing, won
@@ -96,7 +98,13 @@ function App() {
         getModuleInfo('geography-input', 'Escribe las Capitales', '✍️', 'var(--color-accent)'),
     ].filter(m => m.startIndex !== -1);
 
-    const availableModules = selectedSubject === 'math' ? mathModules : geographyModules;
+    const englishModules = [
+        getModuleInfo('spelling-bee', 'Spelling Bee', '🐝', 'var(--color-warning)'),
+    ].filter(m => m.startIndex !== -1);
+
+    let availableModules = mathModules;
+    if (selectedSubject === 'geography') availableModules = geographyModules;
+    if (selectedSubject === 'english') availableModules = englishModules;
 
     const modules = availableModules.map(m => {
         const isStarted = levelIndex >= m.startIndex;
@@ -107,8 +115,8 @@ function App() {
             isLocked = true;
         } else if (selectedSubject === 'math' && maxReached < m.startIndex && m.id !== 'pythagorean') {
             isLocked = true;
-        } else if (selectedSubject === 'geography') {
-            // Unlocked by default for Geo for now
+        } else if (selectedSubject === 'geography' || selectedSubject === 'english') {
+            // Unlocked by default for Geo and English for now
             isLocked = false;
         }
 
@@ -131,19 +139,42 @@ function App() {
     const currentModule = modules.find(m => m.active) || modules[0] || { startIndex: 0, count: 1, title: '...' };
     const relativeLevel = levelIndex - currentModule.startIndex + 1;
 
-    const handleLevelComplete = () => {
+    const advanceLevel = () => {
         const nextLevel = levelIndex + 1;
+        const isModuleEnd = nextLevel >= currentModule.startIndex + currentModule.count;
+
+        if (isModuleEnd) {
+            if (skippedLevels.length > 0) {
+                setGameState('review-skipped');
+                return;
+            }
+            setGameState('won');
+            return;
+        }
+
         if (nextLevel > maxReached) {
             setMaxReached(nextLevel);
             localStorage.setItem('mathQuest_maxLevel', nextLevel.toString());
         }
 
-        // Only continue if next level belongs to the same subject
         if (levelIndex < exercises.length - 1 && exercises[nextLevel].subject === selectedSubject) {
             setLevelIndex(nextLevel);
         } else {
             setGameState('won');
         }
+    };
+
+    const handleLevelComplete = () => {
+        setSkippedLevels(prev => prev.filter(id => id !== levelIndex));
+        advanceLevel();
+    };
+
+    const handleLevelSkip = () => {
+        setSkippedLevels(prev => {
+            if (!prev.includes(levelIndex)) return [...prev, levelIndex];
+            return prev;
+        });
+        advanceLevel();
     };
 
     const handlePrevLevel = () => {
@@ -167,7 +198,7 @@ function App() {
     const selectSubject = (subject) => {
         setSelectedSubject(subject);
         setGameState('menu');
-        const firstModule = subject === 'math' ? mathModules[0] : geographyModules[0];
+        const firstModule = subject === 'math' ? mathModules[0] : (subject === 'geography' ? geographyModules[0] : englishModules[0]);
         setLevelIndex(firstModule.startIndex);
     };
 
@@ -319,22 +350,33 @@ function App() {
                                 <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🌎</div>
                                 <h3 style={{ fontSize: '1.5rem', color: 'var(--color-secondary)' }}>Geografía</h3>
                             </button>
+                            <button
+                                onClick={() => selectSubject('english')}
+                                className="glass-panel hover-scale"
+                                style={{
+                                    padding: '2rem', width: '220px', textAlign: 'center',
+                                    background: 'rgba(255, 215, 0, 0.1)', cursor: 'pointer', border: 'none'
+                                }}
+                            >
+                                <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🗽</div>
+                                <h3 style={{ fontSize: '1.5rem', color: 'var(--color-warning)' }}>Inglés</h3>
+                            </button>
                         </div>
                     </div>
                 ) : gameState === 'menu' ? (
                     <div style={{ textAlign: 'center' }}>
                         <h2 style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>
-                            {selectedSubject === 'math' ? 'Aventura Matemática' : 'Exploración Geográfica'}
+                            {selectedSubject === 'math' ? 'Aventura Matemática' : (selectedSubject === 'geography' ? 'Exploración Geográfica' : 'English Adventure')}
                         </h2>
                         <p style={{ fontSize: '1.2rem', color: 'var(--color-text-dim)', marginBottom: '2rem' }}>
                             {selectedSubject === 'math'
                                 ? '¡Domina las fracciones y diviértete!'
-                                : '¡Conoce las capitales de todo el continente!'}
+                                : (selectedSubject === 'geography' ? '¡Conoce las capitales de todo el continente!' : '¡Aprende nuevas palabras con el Spelling Bee!')}
                         </p>
                         <button
                             onClick={startGame}
                             style={{
-                                background: selectedSubject === 'math' ? 'var(--color-primary)' : 'var(--color-secondary)',
+                                background: selectedSubject === 'math' ? 'var(--color-primary)' : (selectedSubject === 'geography' ? 'var(--color-secondary)' : 'var(--color-warning)'),
                                 color: selectedSubject === 'math' ? 'white' : 'var(--color-bg-deep)',
                                 padding: '1rem 3rem',
                                 fontSize: '1.5rem',
@@ -429,6 +471,14 @@ function App() {
                                 options={currentLevel.options}
                                 instruction={currentLevel.instruction}
                             />
+                        ) : currentLevel.type === 'spelling' ? (
+                            <SpellingBeeStage
+                                key={currentLevel.id}
+                                onComplete={handleLevelComplete}
+                                onSkip={handleLevelSkip}
+                                word={currentLevel.word}
+                                instruction={currentLevel.instruction}
+                            />
                         ) : currentLevel.type === 'geography-input' ? (
                             <GeographyInputStage
                                 key={currentLevel.id}
@@ -439,6 +489,37 @@ function App() {
                                 instruction={currentLevel.instruction}
                             />
                         ) : null}
+                    </div>
+                ) : gameState === 'review-skipped' ? (
+                    <div style={{ textAlign: 'center' }} className="animate-pop">
+                        <h2 style={{ fontSize: '3rem', color: 'var(--color-warning)', marginBottom: '1rem' }}>¡Casi terminas!</h2>
+                        <p style={{ marginBottom: '2rem', fontSize: '1.2rem' }}>
+                            Te has saltado {skippedLevels.length} palabra{skippedLevels.length === 1 ? '' : 's'}. ¿Te gustaría volver a intentarlas?
+                        </p>
+                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                            <button onClick={() => {
+                                setLevelIndex(skippedLevels[0]);
+                                setGameState('playing');
+                            }} style={{
+                                background: 'var(--color-primary)',
+                                color: 'white',
+                                padding: '1rem 2rem',
+                                borderRadius: 'var(--radius-md)',
+                                fontSize: '1.1rem',
+                                border: 'none',
+                                cursor: 'pointer',
+                                fontWeight: 'bold'
+                            }}>Volver a intentar palabras saltadas</button>
+                            <button onClick={() => setGameState('won')} style={{
+                                background: 'transparent',
+                                color: 'var(--color-text)',
+                                border: '2px solid rgba(255,255,255,0.3)',
+                                padding: '1rem 2rem',
+                                borderRadius: 'var(--radius-md)',
+                                fontSize: '1.1rem',
+                                cursor: 'pointer'
+                            }}>No, finalizar juego</button>
+                        </div>
                     </div>
                 ) : (
                     <div style={{ textAlign: 'center' }} className="animate-pop">
