@@ -100,6 +100,7 @@ function App() {
 
     const englishModules = [
         getModuleInfo('spelling-bee', 'Spelling Bee', '🐝', 'var(--color-warning)'),
+        getModuleInfo('spelling-bee-2', 'Spelling Bee Nivel 2', '🦉', 'var(--color-success)'),
     ].filter(m => m.startIndex !== -1);
 
     let availableModules = mathModules;
@@ -373,18 +374,34 @@ function App() {
                                 ? '¡Domina las fracciones y diviértete!'
                                 : (selectedSubject === 'geography' ? '¡Conoce las capitales de todo el continente!' : '¡Aprende nuevas palabras con el Spelling Bee!')}
                         </p>
-                        <button
-                            onClick={startGame}
-                            style={{
-                                background: selectedSubject === 'math' ? 'var(--color-primary)' : (selectedSubject === 'geography' ? 'var(--color-secondary)' : 'var(--color-warning)'),
-                                color: selectedSubject === 'math' ? 'white' : 'var(--color-bg-deep)',
-                                padding: '1rem 3rem',
-                                fontSize: '1.5rem',
-                                borderRadius: 'var(--radius-md)',
-                                boxShadow: '0 4px 15px rgba(255, 51, 102, 0.4)'
-                            }}>
-                            ¡Comenzar!
-                        </button>
+                        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '2rem' }}>
+                            {modules.map((m) => (
+                                <button
+                                    key={m.id}
+                                    onClick={() => {
+                                        setLevelIndex(m.startIndex);
+                                        setGameState('playing');
+                                    }}
+                                    disabled={m.locked}
+                                    className={`glass-panel ${!m.locked ? 'hover-scale' : ''}`}
+                                    style={{
+                                        padding: '1.5rem',
+                                        width: '200px',
+                                        textAlign: 'center',
+                                        background: m.locked ? 'rgba(0,0,0,0.1)' : (m.color || 'var(--color-primary)'),
+                                        opacity: m.locked ? 0.5 : 1,
+                                        cursor: m.locked ? 'not-allowed' : 'pointer',
+                                        border: 'none',
+                                        color: m.locked ? 'var(--color-text-dim)' : 'white',
+                                        boxShadow: m.locked ? 'none' : '0 4px 15px rgba(0,0,0,0.2)'
+                                    }}
+                                >
+                                    <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>{m.icon}</div>
+                                    <h3 style={{ fontSize: '1.2rem' }}>{m.title}</h3>
+                                    {m.locked && <div style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>🔒 Bloqueado</div>}
+                                </button>
+                            ))}
+                        </div>
                         <button
                             onClick={() => setGameState('subject-selection')}
                             style={{ display: 'block', margin: '2rem auto 0', background: 'none', color: 'var(--color-text-dim)', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
